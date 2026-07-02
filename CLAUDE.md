@@ -2,15 +2,32 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> **Status: Phases 0–4 complete (v0.1).** Research, scaffold, core features, gasless (CDP
-> Paymaster / ERC-4337), and polish (README, MIT LICENSE, smoke tests) are done. tsc/eslint
-> clean, 20 unit tests pass. **A real batch payout has been executed end-to-end on Base
-> Sepolia** (`npm run smoke`): approval + `sprayEqual` to two recipients, budget enforced,
-> ledger recorded (tx `0xaac7cafb…`). **Live *gasless* send also verified on Base Sepolia**:
-> a sponsored `approve`+`sprayEqual` UserOp from the smart account `0xD30B…` (tx `0xcaead8cc…`)
-> — smart account paid **0 ETH** (fully sponsored by the CDP Paymaster), USDC debited correctly,
-> account auto-deployed via initCode. Requires USDC **and** the Spray contract to be allowlisted
-> in the CDP paymaster policy. Remaining before publish: the user runs `npm publish` manually (2FA).
+> **Status: Phases 0–4 complete and PUBLISHED as `spraay-batch@0.2.0`.** Research, scaffold,
+> core features, gasless (CDP Paymaster / ERC-4337), and polish (README, MIT LICENSE, smoke
+> tests) are done. tsc/eslint clean, 20 unit tests pass. **A real batch payout has been executed
+> end-to-end on Base Sepolia** (`npm run smoke`): approval + `sprayEqual` to two recipients,
+> budget enforced, ledger recorded (tx `0xaac7cafb…`). **Live *gasless* send also verified on
+> Base Sepolia**: a sponsored `approve`+`sprayEqual` UserOp from the smart account `0xD30B…`
+> (tx `0xcaead8cc…`) — smart account paid **0 ETH** (fully sponsored by the CDP Paymaster), USDC
+> debited correctly, account auto-deployed via initCode. Requires USDC **and** the Spray contract
+> to be allowlisted in the CDP paymaster policy.
+>
+> **RENAMED 2026-07-02: SpraayPay → SpraayBatch (v0.1 → v0.2.0).** npm package `spraaypay` →
+> **`spraay-batch`** (published, `latest` = 0.2.0); the old **`spraaypay@0.1.0` is DEPRECATED** on
+> npm ("Renamed to spraay-batch — please install spraay-batch instead"). GitHub repo →
+> **`plagtech/SpraayBatch`**. Agent tool IDs `spraaypay_*` → **`spraay_*`** (`spraay_wallet_info`,
+> `spraay_balance`, `spraay_budget_set`, `spraay_budget_status`, `spraay_batch_pay`,
+> `spraay_receipts`). CLI bin → **`spraay-batch`**; config file → **`~/.spraay/spraay-batch.json`**.
+> UNCHANGED by the rename (deliberate): the `~/.spraay/` dir, `.session` path, `SPRAAY_*` env vars,
+> and all deployed contract addresses.
+>
+> **TODO before a MAINNET (`base`) gasless launch:** (1) **Allowlist** the mainnet Spray contract
+> `0x1646452F98E36A3c9Cfc3eDD8868221E207B5eEC` **and** mainnet USDC
+> `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` in the CDP paymaster policy (both the `approve` and
+> the spray calls are sponsored). (2) **Sponsorship caps** — enforce `sponsorship.capUsd` locally
+> via `evaluateSponsorship()` (currently a hook only; the authoritative cap is the CDP dashboard
+> policy). (3) **Dust limits** — add a minimum per-recipient amount so tiny/zero payouts can't
+> burn sponsored gas on economically pointless transfers.
 >
 > **OpenClaw is NOT installed on this machine.** Target the **current stable OpenClaw release**
 > (integration surface documented in `./reference/ClawRouter`). Build the plugin so it can be
