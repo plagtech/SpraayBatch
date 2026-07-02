@@ -41,7 +41,7 @@ export const NETWORKS: Record<SpraayNetwork, NetworkInfo> = {
     chain: baseSepolia,
     // Circle's official Base Sepolia USDC.
     usdc: "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
-    // SprayContract deployed by SpraayPay with 0 fee bps (feeRecipient = session wallet).
+    // SprayContract deployed by SpraayBatch with 0 fee bps (feeRecipient = session wallet).
     sprayContract: "0xfb1B884E489B0296CefadA2d8Db7CFbD1ED62f7A",
     explorer: "https://sepolia.basescan.org",
     rpcEnv: "SPRAAY_BASE_SEPOLIA_RPC_URL",

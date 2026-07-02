@@ -1,5 +1,5 @@
 /**
- * Wallet resolution for SpraayPay.
+ * Wallet resolution for SpraayBatch.
  *
  * Ported from spraay-x402-mcp (src/wallet.ts) to keep the zero-config UX identical:
  * the user installs, funds an address, and never has to configure a key. Resolution
@@ -144,6 +144,6 @@ export function describeWallet(w: WalletInfo): string {
     case "session":
       return `Wallet (${SESSION_FILE}): ${w.address}`;
     case "generated":
-      return `Created a new wallet: ${w.address} — fund it with USDC on Base. Back it up with \`spraaypay export-key\`.`;
+      return `Created a new wallet: ${w.address} — fund it with USDC on Base. Back it up with \`spraay-batch export-key\`.`;
   }
 }

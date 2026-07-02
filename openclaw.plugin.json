@@ -1,6 +1,6 @@
 {
-  "id": "spraaypay",
-  "name": "SpraayPay",
+  "id": "spraay-batch",
+  "name": "SpraayBatch",
   "description": "Agent-native, gasless USDC payments on Base. Non-custodial auto-wallet, per-agent budget caps, and atomic batch payouts. Agents holding only USDC (zero ETH) can pay.",
   "skills": ["./skills"],
   "activation": {
@@ -9,12 +9,12 @@
   "enabledByDefault": true,
   "contracts": {
     "tools": [
-      "spraaypay_wallet_info",
-      "spraaypay_balance",
-      "spraaypay_budget_set",
-      "spraaypay_budget_status",
-      "spraaypay_batch_pay",
-      "spraaypay_receipts"
+      "spraay_wallet_info",
+      "spraay_balance",
+      "spraay_budget_set",
+      "spraay_budget_status",
+      "spraay_batch_pay",
+      "spraay_receipts"
     ]
   },
   "configSchema": {

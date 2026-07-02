@@ -1,5 +1,5 @@
 /**
- * Minimal OpenClaw plugin API surface that SpraayPay depends on.
+ * Minimal OpenClaw plugin API surface that SpraayBatch depends on.
  *
  * OpenClaw is an OPTIONAL peer dependency (this package also runs as a standalone
  * CLI), so we do not import its types at build time. These are a hand-maintained,

@@ -19,13 +19,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 >
 > **Base Sepolia Spray contract: DEPLOYED.** `0xfb1B884E489B0296CefadA2d8Db7CFbD1ED62f7A`
 > (0 fee bps, feeRecipient = session wallet), wired into `src/chains.ts`. Deployed from the
-> Hardhat project at `C:\Users\dell\Documents\spray-app\contracts` using the SpraayPay session
+> Hardhat project at `C:\Users\dell\Documents\spray-app\contracts` using the SpraayBatch session
 > key (not the project `.env`). The session wallet also holds ~21 test USDC on Base Sepolia, so
 > a live testnet batch-payout smoke test is possible in Phase 4.
 
-## What SpraayPay is
+## What SpraayBatch is
 
-SpraayPay is an **OpenClaw plugin** that becomes the agent's default **payment / treasury
+SpraayBatch is an **OpenClaw plugin** that becomes the agent's default **payment / treasury
 layer** — "ClawRouter, but for money-out instead of model routing." An autonomous agent
 (and its sub-agents) can hold and spend **USDC on Base**, non-custodially, with gas sponsored
 so the agent needs **zero ETH**.
@@ -33,7 +33,7 @@ so the agent needs **zero ETH**.
 - Stack: **TypeScript, ESM** (matches the user's OpenClaw gateway stack).
 - Distribution: npm package + **one-line install script** (curl one-liner → register plugin →
   write config → restart), modeled on ClawRouter's installer.
-- Runtime data lives under **`~/.spraay/`** (config: `~/.spraay/spraaypay.json`; wallet
+- Runtime data lives under **`~/.spraay/`** (config: `~/.spraay/spraay-batch.json`; wallet
   session: `~/.spraay/.session`).
 
 ## Build phases (build in order; STOP for user approval after each phase)
@@ -45,7 +45,7 @@ so the agent needs **zero ETH**.
   only its integration pattern.**
 - **Phase 1 — Scaffold:** New TS/ESM repo; plugin registration + one-liner install script;
   auto-create EVM wallet on first run (ported from `spraay-x402-mcp`); config at
-  `~/.spraay/spraaypay.json`.
+  `~/.spraay/spraay-batch.json`.
 - **Phase 2 — Core features (v0.1 scope only, nothing more):**
   - **Wallet** — USDC balance check on Base, funding instructions; non-custodial, key never
     leaves the machine. Ships an **`export-key`** command so users can back up the auto-created
@@ -65,7 +65,7 @@ so the agent needs **zero ETH**.
   zero ETH). Reference `plagtech/mangoswap`. Sponsored on free tier; **design so sponsorship
   can be capped later** without a rewrite.
 - **Phase 4 — Polish:** README (one-line install at top, animated demo placeholder, comparison
-  table: SpraayPay vs manual sends vs multisig vs payroll SaaS — rows: gasless, batch, budget
+  table: SpraayBatch vs manual sends vs multisig vs payroll SaaS — rows: gasless, batch, budget
   caps, non-custodial, agent-native); MIT license; smoke tests for wallet creation, budget
   enforcement, batch payout (**Base Sepolia first, then mainnet**).
 
@@ -77,7 +77,7 @@ so the agent needs **zero ETH**.
 - **USDC:** `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`
 
 **Base Sepolia (testnet):**
-- **Spray contract:** `0xfb1B884E489B0296CefadA2d8Db7CFbD1ED62f7A` (deployed by SpraayPay, feeBps=0).
+- **Spray contract:** `0xfb1B884E489B0296CefadA2d8Db7CFbD1ED62f7A` (deployed by SpraayBatch, feeBps=0).
 - **USDC:** `0x036CbD53842c5426634e7929541eC2318f3dCF7e` (Circle official).
 
 - **Chain client:** **viem v2**, signing locally.
@@ -109,19 +109,19 @@ so the agent needs **zero ETH**.
 
 ## Architecture
 
-SpraayPay reuses ClawRouter's **integration skeleton** (see `./reference/ClawRouter`) but
-**none of its routing/proxy/model logic** — SpraayPay is money-out, not inference-routing.
+SpraayBatch reuses ClawRouter's **integration skeleton** (see `./reference/ClawRouter`) but
+**none of its routing/proxy/model logic** — SpraayBatch is money-out, not inference-routing.
 
 ### How it hooks into OpenClaw (pattern lifted from ClawRouter)
 
-- **Manifest** `openclaw.plugin.json`: `id: spraaypay`, `activation.onStartup`, `skills:
+- **Manifest** `openclaw.plugin.json`: `id: spraay-batch`, `activation.onStartup`, `skills:
   ["./skills"]`, `configSchema` (optional `walletKey`, marked `sensitive`; sponsorship-cap
   setting), and `contracts.tools` listing the agent-callable payment tools.
 - **`package.json`** `openclaw` field: `extensions: ["./dist/index.js"]` + `compat` targeting
   the current stable gateway; `peerDependencies.openclaw` (optional); `type: module`;
-  `bin: spraaypay` for the CLI.
+  `bin: spraay-batch` for the CLI.
 - **`src/index.ts`** exports an `OpenClawPluginDefinition`; the loader calls `register()`
-  (`activate` is an alias). On load it **idempotently**: ensures `~/.spraay/spraaypay.json`,
+  (`activate` is an alias). On load it **idempotently**: ensures `~/.spraay/spraay-batch.json`,
   resolves/auto-creates the wallet, registers tools + slash-commands, and copies bundled
   `skills/` into `~/.openclaw/workspace/skills/`.
 - **Install-time gotcha (must respect):** do **not** write OpenClaw's config file during
@@ -177,7 +177,7 @@ SpraayPay reuses ClawRouter's **integration skeleton** (see `./reference/ClawRou
 ## Module map (`src/`)
 
 - `openclaw.ts` — duck-typed OpenClaw plugin API (optional peer dep, so no build-time import).
-- `paths.ts` — `~/.spraay/` locations. `config.ts` — `spraaypay.json` (atomic, 0600).
+- `paths.ts` — `~/.spraay/` locations. `config.ts` — `spraay-batch.json` (atomic, 0600).
 - `wallet.ts` — ported `resolveWallet` + corruption guard + `exportPrivateKey`.
 - `abi.ts` — minimal `SPRAY_ABI` + `ERC20_ABI` (`as const`). `chains.ts` — networks, clients,
   `requireSprayContract`. `amounts.ts` — USDC parse/format + recipient validation (bigint base

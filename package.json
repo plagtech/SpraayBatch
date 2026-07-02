@@ -1,13 +1,21 @@
 {
-  "name": "spraaypay",
-  "version": "0.1.0",
-  "description": "SpraayPay — agent-native, gasless USDC payments for OpenClaw. Non-custodial wallet, per-agent budget caps, and atomic batch payouts on Base.",
+  "name": "spraay-batch",
+  "version": "0.2.0",
+  "description": "SpraayBatch — agent-native, gasless USDC payments for OpenClaw. Non-custodial wallet, per-agent budget caps, and atomic batch payouts on Base.",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "spraaypay": "./dist/cli.js"
+    "spraay-batch": "./dist/cli.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/plagtech/SpraayBatch.git"
+  },
+  "bugs": {
+    "url": "https://github.com/plagtech/SpraayBatch/issues"
+  },
+  "homepage": "https://github.com/plagtech/SpraayBatch#readme",
   "openclaw": {
     "extensions": [
       "./dist/index.js"

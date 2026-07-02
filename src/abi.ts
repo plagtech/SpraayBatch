@@ -1,5 +1,5 @@
 /**
- * Minimal ABIs SpraayPay calls at runtime, kept as `as const` for viem's type
+ * Minimal ABIs SpraayBatch calls at runtime, kept as `as const` for viem's type
  * inference. The full verified Spray contract ABI lives at
  * reference/spray-contract-abi.json; this is only the subset we use.
  */

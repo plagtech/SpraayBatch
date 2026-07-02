@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 /**
- * SpraayPay CLI — standalone (works without OpenClaw installed).
+ * SpraayBatch CLI — standalone (works without OpenClaw installed).
  *
- *   spraaypay [info]                      wallet address, network, file locations
- *   spraaypay balance                     live USDC balance
- *   spraaypay budget set <id> <usdc>      set a per-agent cap
- *   spraaypay budget clear <id>           remove a cap
- *   spraaypay budget status [id]          show cap(s)
- *   spraaypay pay <amountEach> <addr...>  pay each address the same amount
+ *   spraay-batch [info]                      wallet address, network, file locations
+ *   spraay-batch balance                     live USDC balance
+ *   spraay-batch budget set <id> <usdc>      set a per-agent cap
+ *   spraay-batch budget clear <id>           remove a cap
+ *   spraay-batch budget status [id]          show cap(s)
+ *   spraay-batch pay <amountEach> <addr...>  pay each address the same amount
  *                 [--agent id] [--dry-run] [--confirm]
- *   spraaypay receipts [limit]            recent payments
- *   spraaypay export-key                  print the private key for backup
- *   spraaypay --help
+ *   spraay-batch receipts [limit]            recent payments
+ *   spraay-batch export-key                  print the private key for backup
+ *   spraay-batch --help
  */
 
 import { resolveWallet, exportPrivateKey, WalletFileError } from "./wallet.js";
@@ -40,19 +40,19 @@ const msg = (e: unknown) => (e instanceof Error ? e.message : String(e));
 function usage(): void {
   out(
     [
-      `SpraayPay ${VERSION} — agent-native gasless USDC payments on Base`,
+      `SpraayBatch ${VERSION} — agent-native gasless USDC payments on Base`,
       "",
       "Usage:",
-      "  spraaypay [info]                      Wallet address, network, file locations",
-      "  spraaypay balance                     Live USDC balance",
-      "  spraaypay budget set <id> <usdc>      Set a per-agent spend cap",
-      "  spraaypay budget clear <id>           Remove a cap",
-      "  spraaypay budget status [id]          Show cap(s)",
-      "  spraaypay pay <amountEach> <addr...>  Pay each address the same amount",
+      "  spraay-batch [info]                      Wallet address, network, file locations",
+      "  spraay-batch balance                     Live USDC balance",
+      "  spraay-batch budget set <id> <usdc>      Set a per-agent spend cap",
+      "  spraay-batch budget clear <id>           Remove a cap",
+      "  spraay-batch budget status [id]          Show cap(s)",
+      "  spraay-batch pay <amountEach> <addr...>  Pay each address the same amount",
       "                [--agent id] [--dry-run] [--confirm]",
-      "  spraaypay receipts [limit]            Recent payments",
-      "  spraaypay export-key                  Print the private key for backup",
-      "  spraaypay --help",
+      "  spraay-batch receipts [limit]            Recent payments",
+      "  spraay-batch export-key                  Print the private key for backup",
+      "  spraay-batch --help",
     ].join("\n"),
   );
 }
@@ -126,7 +126,7 @@ function budget(args: string[]): void {
     }
     return;
   }
-  err("Usage: spraaypay budget set <id> <usdc> | clear <id> | status [id]");
+  err("Usage: spraay-batch budget set <id> <usdc> | clear <id> | status [id]");
   process.exitCode = 1;
 }
 
@@ -144,7 +144,7 @@ async function pay(args: string[]): Promise<void> {
   }
   const [amount, ...recipients] = positional;
   if (!amount || recipients.length === 0) {
-    err("Usage: spraaypay pay <amountEach> <addr1> [addr2 ...] [--agent id] [--dry-run] [--confirm]");
+    err("Usage: spraay-batch pay <amountEach> <addr1> [addr2 ...] [--agent id] [--dry-run] [--confirm]");
     process.exitCode = 1;
     return;
   }

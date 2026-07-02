@@ -3,7 +3,7 @@
  *
  * mangoswap (see ./reference/mangoswap) does this in the browser with EIP-5792
  * `wallet_sendCalls` + a `paymasterService` capability pointed at the CDP endpoint
- * (https://api.developer.coinbase.com/rpc/v1/base/<KEY>). SpraayPay is headless with
+ * (https://api.developer.coinbase.com/rpc/v1/base/<KEY>). SpraayBatch is headless with
  * a raw key, so the equivalent is ERC-4337: a Coinbase Smart Account owned by our EOA
  * sends a batched UserOperation through the same CDP Paymaster & Bundler URL, sponsored.
  *
@@ -11,7 +11,7 @@
  * msg.sender for the spray) is the SMART ACCOUNT, not the EOA. The EOA only signs.
  *
  * Gasless is OPT-IN: it activates only when a paymaster URL is configured AND
- * sponsorship is enabled. Otherwise SpraayPay uses the Phase 2 EOA path.
+ * sponsorship is enabled. Otherwise SpraayBatch uses the Phase 2 EOA path.
  *
  * Sponsorship capping: the primary control is a CDP dashboard policy on the paymaster
  * key (per-user / per-period limits). `sponsorship.capUsd` is the local hook for future

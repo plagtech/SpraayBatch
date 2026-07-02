@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #
-# SpraayPay one-line installer (ClawRouter-style).
+# SpraayBatch one-line installer (ClawRouter-style).
 #
-#   curl -fsSL https://spraay.app/spraaypay-install | bash
+#   curl -fsSL https://spraay.app/spraay-batch-install | bash
 #
-# Installs SpraayPay as an OpenClaw plugin, then restarts the gateway so it loads.
+# Installs SpraayBatch as an OpenClaw plugin, then restarts the gateway so it loads.
 # On first load the plugin auto-creates a non-custodial wallet at ~/.spraay/.session
 # and prints the address to fund.
 #
@@ -12,10 +12,10 @@
 
 set -euo pipefail
 
-PKG="spraaypay"
+PKG="spraay-batch"
 
-info() { printf '\033[36m[spraaypay]\033[0m %s\n' "$*"; }
-err()  { printf '\033[31m[spraaypay]\033[0m %s\n' "$*" >&2; }
+info() { printf '\033[36m[spraay-batch]\033[0m %s\n' "$*"; }
+err()  { printf '\033[31m[spraay-batch]\033[0m %s\n' "$*" >&2; }
 
 # --- Prerequisites --------------------------------------------------------------
 if ! command -v node >/dev/null 2>&1; then
@@ -43,6 +43,6 @@ openclaw plugins install "$PKG"
 info "Restarting the OpenClaw gateway..."
 openclaw gateway restart || info "Could not restart automatically — restart the gateway manually."
 
-info "Done. On first load SpraayPay creates a wallet at ~/.spraay/.session."
-info "Show it with:  spraaypay info      Back it up with:  spraaypay export-key"
+info "Done. On first load SpraayBatch creates a wallet at ~/.spraay/.session."
+info "Show it with:  spraay-batch info      Back it up with:  spraay-batch export-key"
 info "Fund the address with USDC on Base to start paying."

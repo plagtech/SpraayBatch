@@ -1,4 +1,4 @@
-# SpraayPay
+# SpraayBatch
 
 **Agent-native, gasless USDC payments on Base — for [OpenClaw](https://github.com/BlockRunAI/ClawRouter).**
 An autonomous agent gets its own non-custodial wallet and can pay one or many recipients in a
@@ -6,18 +6,18 @@ single atomic transaction — holding **only USDC, zero ETH** (gas is sponsored 
 CDP Paymaster). Set per-agent budget caps so a parent agent can bound what each sub-agent spends.
 
 ```bash
-curl -fsSL https://spraay.app/spraaypay-install | bash
+npm install spraay-batch
 ```
 
 <p align="center">
-  <img src="docs/demo.gif" alt="SpraayPay demo — gasless USDC batch payout from an agent" width="720">
+  <img src="docs/demo.gif" alt="SpraayBatch demo — gasless USDC batch payout from an agent" width="720">
 </p>
 
 ---
 
-## Why SpraayPay
+## Why SpraayBatch
 
-|                              | **SpraayPay** | Manual sends | Multisig (e.g. Safe) | Payroll SaaS |
+|                              | **SpraayBatch** | Manual sends | Multisig (e.g. Safe) | Payroll SaaS |
 | ---------------------------- | :-----------: | :----------: | :------------------: | :----------: |
 | **Gasless** (zero-ETH sender) |  ✅ CDP Paymaster |      ❌       |          ❌          |  ⚠️ varies   |
 | **Batch** (N recipients, 1 atomic tx) |      ✅       |   ❌ one-by-one   |      ⚠️ manual       |      ✅      |
@@ -27,34 +27,34 @@ curl -fsSL https://spraay.app/spraaypay-install | bash
 
 ## How it works
 
-- **Non-custodial wallet.** On first run SpraayPay creates an EVM wallet at `~/.spraay/.session`
+- **Non-custodial wallet.** On first run SpraayBatch creates an EVM wallet at `~/.spraay/.session`
   (or reuses one). The private key never leaves your machine and is never logged.
 - **Batch payout.** "Pay N recipients" becomes a single atomic transaction via the on-chain
   Spray contract — `sprayEqual` when everyone gets the same amount (cheaper), `sprayToken` for
   per-recipient amounts. The USDC approval is sized to `payout + protocol fee`, so it can't
   revert on a short allowance.
-- **Gasless (opt-in).** Point SpraayPay at a Coinbase CDP Paymaster URL and the agent can pay
+- **Gasless (opt-in).** Point SpraayBatch at a Coinbase CDP Paymaster URL and the agent can pay
   with **zero ETH**: payouts run as sponsored ERC-4337 UserOperations from a Coinbase Smart
   Account owned by your key. When gasless is on, the address you fund with USDC is the smart
-  account (shown by `spraaypay info`).
+  account (shown by `spraay-batch info`).
 - **Budgets.** A parent agent caps each sub-agent (`agent_id → limit`); once the cap is hit,
   that agent's payouts are blocked. Caps and spend persist locally.
 - **Ledger.** Every payment is appended to `~/.spraay/ledger.jsonl` with a Basescan link;
-  `spraaypay receipts` prints recent spend.
+  `spraay-batch receipts` prints recent spend.
 
 ## Quick start
 
 ```bash
-curl -fsSL https://spraay.app/spraaypay-install | bash   # installs the OpenClaw plugin
-spraaypay info                                            # show your wallet address + network
+npm install spraay-batch                                 # installs the OpenClaw plugin
+spraay-batch info                                        # show your wallet address + network
 # → fund that address with USDC on Base (Base Sepolia by default)
 ```
 
-Then, from your agent, call the `spraaypay_batch_pay` tool — or test by hand:
+Then, from your agent, call the `spraay_batch_pay` tool — or test by hand:
 
 ```bash
-spraaypay pay 10 0xRecipientA 0xRecipientB --dry-run     # preview cost + fee, no send
-spraaypay pay 10 0xRecipientA 0xRecipientB               # pay each 10 USDC in one tx
+spraay-batch pay 10 0xRecipientA 0xRecipientB --dry-run     # preview cost + fee, no send
+spraay-batch pay 10 0xRecipientA 0xRecipientB               # pay each 10 USDC in one tx
 ```
 
 ## Agent tools
@@ -63,12 +63,12 @@ Agents are the primary consumer. The plugin registers these tools (`contracts.to
 
 | Tool | What it does |
 | --- | --- |
-| `spraaypay_wallet_info` | Funding address, owner, network, gasless status, funding link |
-| `spraaypay_balance` | Live USDC balance of the funding address |
-| `spraaypay_budget_set` | Set/clear a sub-agent's spend cap (USDC) |
-| `spraaypay_budget_status` | Cap / spent / remaining for one or all agents |
-| `spraaypay_batch_pay` | Pay N recipients in one atomic tx (`amount` = same to all, or `amounts` = per-recipient); `dry_run`, `agent_id`, `confirm_mainnet` |
-| `spraaypay_receipts` | Recent payments from the local ledger |
+| `spraay_wallet_info` | Funding address, owner, network, gasless status, funding link |
+| `spraay_balance` | Live USDC balance of the funding address |
+| `spraay_budget_set` | Set/clear a sub-agent's spend cap (USDC) |
+| `spraay_budget_status` | Cap / spent / remaining for one or all agents |
+| `spraay_batch_pay` | Pay N recipients in one atomic tx (`amount` = same to all, or `amounts` = per-recipient); `dry_run`, `agent_id`, `confirm_mainnet` |
+| `spraay_receipts` | Recent payments from the local ledger |
 
 ## Slash-commands (for humans testing)
 
@@ -77,19 +77,19 @@ Agents are the primary consumer. The plugin registers these tools (`contracts.to
 ## CLI
 
 ```
-spraaypay [info]                      Wallet address, network, file locations
-spraaypay balance                     Live USDC balance
-spraaypay budget set <id> <usdc>      Set a per-agent spend cap
-spraaypay budget clear <id>           Remove a cap
-spraaypay budget status [id]          Show cap(s)
-spraaypay pay <amountEach> <addr...>  Pay each address the same amount [--agent id] [--dry-run] [--confirm]
-spraaypay receipts [limit]            Recent payments
-spraaypay export-key                  Print the private key for backup (keep it secret)
+spraay-batch [info]                      Wallet address, network, file locations
+spraay-batch balance                     Live USDC balance
+spraay-batch budget set <id> <usdc>      Set a per-agent spend cap
+spraay-batch budget clear <id>           Remove a cap
+spraay-batch budget status [id]          Show cap(s)
+spraay-batch pay <amountEach> <addr...>  Pay each address the same amount [--agent id] [--dry-run] [--confirm]
+spraay-batch receipts [limit]            Recent payments
+spraay-batch export-key                  Print the private key for backup (keep it secret)
 ```
 
 ## Configuration
 
-Config lives at `~/.spraay/spraaypay.json`. Via OpenClaw plugin config or these env vars:
+Config lives at `~/.spraay/spraay-batch.json`. Via OpenClaw plugin config or these env vars:
 
 | Setting | Env var | Notes |
 | --- | --- | --- |
@@ -125,7 +125,7 @@ Mainnet smoke: `SMOKE_NETWORK=base SMOKE_CONFIRM=1 npm run smoke` (spends real f
 ## Security
 
 - The private key never leaves your machine and is never logged. Back it up with
-  `spraaypay export-key`.
+  `spraay-batch export-key`.
 - Payouts are signed locally — never routed through a gateway.
 - Amounts, fee, recipient count, and `paused` state are validated on-chain before signing.
 

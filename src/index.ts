@@ -1,5 +1,5 @@
 /**
- * SpraayPay — OpenClaw plugin entry point.
+ * SpraayBatch — OpenClaw plugin entry point.
  *
  * Agent-native, gasless USDC payments on Base. Wires the plugin into OpenClaw,
  * ensures local config, auto-resolves a non-custodial wallet, and registers the
@@ -8,7 +8,7 @@
  * slash-commands, and a bundled skill.
  *
  * Integration pattern mirrors ./reference/ClawRouter but carries NONE of its
- * routing/proxy/model logic — SpraayPay is money-out, not inference-routing.
+ * routing/proxy/model logic — SpraayBatch is money-out, not inference-routing.
  */
 
 import type {
@@ -111,9 +111,9 @@ function buildTools(
   const gasless = gaslessActive(config);
 
   const walletInfo: OpenClawToolDefinition = {
-    name: "spraaypay_wallet_info",
+    name: "spraay_wallet_info",
     description:
-      "Report the SpraayPay funding address, owner address, active Base network, gasless status, " +
+      "Report the SpraayBatch funding address, owner address, active Base network, gasless status, " +
       "and funding link. When gasless is active, fund the SMART ACCOUNT (fundingAddress) — no ETH " +
       "needed. Read-only; never returns the private key.",
     parameters: { type: "object", properties: {}, required: [] },
@@ -138,7 +138,7 @@ function buildTools(
   };
 
   const balance: OpenClawToolDefinition = {
-    name: "spraaypay_balance",
+    name: "spraay_balance",
     description:
       "Get the funding address's live USDC balance on the active Base network (the smart account when gasless).",
     parameters: { type: "object", properties: {}, required: [] },
@@ -161,7 +161,7 @@ function buildTools(
   };
 
   const budgetSet: OpenClawToolDefinition = {
-    name: "spraaypay_budget_set",
+    name: "spraay_budget_set",
     description:
       "Set (or clear) a spend cap for a sub-agent, in USDC. Once cumulative spend reaches the " +
       "cap, that agent's payouts are blocked. Pass limit_usdc as a number string, or omit / set " +
@@ -195,7 +195,7 @@ function buildTools(
   };
 
   const budgetStatus: OpenClawToolDefinition = {
-    name: "spraaypay_budget_status",
+    name: "spraay_budget_status",
     description:
       "Show budget status for one sub-agent (agent_id) or all agents (omit agent_id). " +
       "Reports limit, spent, and remaining in USDC.",
@@ -232,7 +232,7 @@ function buildTools(
   };
 
   const batchPay: OpenClawToolDefinition = {
-    name: "spraaypay_batch_pay",
+    name: "spraay_batch_pay",
     description:
       "Pay multiple recipients USDC in one atomic transaction on Base. Provide `amount` to pay " +
       "the same amount to everyone (cheaper), or `amounts` for per-recipient amounts. Set " +
@@ -297,7 +297,7 @@ function buildTools(
   };
 
   const receipts: OpenClawToolDefinition = {
-    name: "spraaypay_receipts",
+    name: "spraay_receipts",
     description: "List recent payments from the local ledger (newest first), with Basescan links.",
     parameters: {
       type: "object",
@@ -332,7 +332,7 @@ function buildCommands(
 
   const wallet_: OpenClawPluginCommandDefinition = {
     name: "wallet",
-    description: "Show your SpraayPay funding address, network, gasless status, and funding link.",
+    description: "Show your SpraayBatch funding address, network, gasless status, and funding link.",
     handler: async () => {
       try {
         const funding = await fundingAddress(config, wallet);
@@ -345,7 +345,7 @@ function buildCommands(
             `Gasless: ${gasless ? "on — zero ETH needed" : "off (set a CDP paymaster URL)"}`,
             `Config: ${CONFIG_FILE}`,
             "",
-            "Fund the funding address with USDC. Back up your key with:  spraaypay export-key",
+            "Fund the funding address with USDC. Back up your key with:  spraay-batch export-key",
           ].join("\n"),
         };
       } catch (e) {
@@ -476,8 +476,8 @@ function buildCommands(
 }
 
 const plugin: OpenClawPluginDefinition = {
-  id: "spraaypay",
-  name: "SpraayPay",
+  id: "spraay-batch",
+  name: "SpraayBatch",
   version: VERSION,
   description: "Agent-native, gasless USDC payments on Base.",
 
@@ -490,7 +490,7 @@ const plugin: OpenClawPluginDefinition = {
         wallet = resolveWallet(api.pluginConfig?.walletKey as string | undefined);
       } catch (e) {
         if (e instanceof WalletFileError) {
-          api.logger.error(`SpraayPay: ${e.message}`);
+          api.logger.error(`SpraayBatch: ${e.message}`);
           return;
         }
         throw e;
@@ -498,14 +498,14 @@ const plugin: OpenClawPluginDefinition = {
 
       const budgets = new BudgetStore();
 
-      api.logger.info(`SpraayPay ${VERSION} — ${describeWallet(wallet)}`);
+      api.logger.info(`SpraayBatch ${VERSION} — ${describeWallet(wallet)}`);
       api.logger.info(
-        `SpraayPay: network=${config.network}, usdc=${networkInfo(config.network).usdc}, config=${CONFIG_FILE}`,
+        `SpraayBatch: network=${config.network}, usdc=${networkInfo(config.network).usdc}, config=${CONFIG_FILE}`,
       );
       api.logger.info(
-        `SpraayPay: gasless=${
+        `SpraayBatch: gasless=${
           gaslessActive(config)
-            ? "ON (sponsored; fund the smart account — run spraaypay_wallet_info)"
+            ? "ON (sponsored; fund the smart account — run spraay_wallet_info)"
             : "off (set a CDP paymaster URL to enable zero-ETH payouts)"
         }`,
       );
@@ -513,7 +513,7 @@ const plugin: OpenClawPluginDefinition = {
       for (const tool of buildTools(wallet, config, budgets)) api.registerTool(tool);
       for (const cmd of buildCommands(wallet, config, budgets)) api.registerCommand(cmd);
     } catch (e) {
-      api.logger.error(`SpraayPay failed to initialize: ${msg(e)}`);
+      api.logger.error(`SpraayBatch failed to initialize: ${msg(e)}`);
     }
   },
 };

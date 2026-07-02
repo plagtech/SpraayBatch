@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * SpraayPay smoke test — exercises the real flow end-to-end against a live network.
+ * SpraayBatch smoke test — exercises the real flow end-to-end against a live network.
  *
  *   node scripts/smoke.mjs                 # Base Sepolia (testnet, default)
  *   SMOKE_NETWORK=base SMOKE_CONFIRM=1 node scripts/smoke.mjs   # mainnet (explicit)
@@ -42,7 +42,7 @@ const fail = (m) => {
   console.error(`  ✗ ${m}`);
 };
 
-console.log(`SpraayPay smoke test on ${NETWORK}\n${"=".repeat(40)}`);
+console.log(`SpraayBatch smoke test on ${NETWORK}\n${"=".repeat(40)}`);
 
 // 0) Mode: gasless (sponsored) when a paymaster URL is configured -------------
 const config = loadConfig();

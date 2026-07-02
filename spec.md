@@ -1,4 +1,4 @@
-We're building SpraayPay — an OpenClaw plugin that becomes the agent's
+We're building SpraayBatch — an OpenClaw plugin that becomes the agent's
 default payment/treasury layer. Think ClawRouter, but for money-out
 instead of model routing. Work in phases and stop for my approval
 after each phase.
@@ -21,10 +21,10 @@ PHASE 0 — RESEARCH (no code yet)
    logic — we only want the integration pattern.
 
 PHASE 1 — SCAFFOLD
-- New repo: spraaypay (TypeScript, ESM, matching my gateway's stack)
+- New repo: spraay-batch (TypeScript, ESM, matching my gateway's stack)
 - Plugin registration + install script (one-liner like ClawRouter's)
 - Auto-create EVM wallet on first run (port from spraay-x402-mcp)
-- Config file at ~/.spraay/spraaypay.json
+- Config file at ~/.spraay/spraay-batch.json
 
 PHASE 2 — CORE FEATURES (v0.1 scope, nothing more)
 1. WALLET: balance check (USDC on Base), funding instructions,
@@ -48,7 +48,7 @@ PHASE 3 — GASLESS (the hook)
 
 PHASE 4 — POLISH
 - README with: one-line install at top, animated demo placeholder,
-  and a comparison table (SpraayPay vs manual sends vs multisig vs
+  and a comparison table (SpraayBatch vs manual sends vs multisig vs
   payroll SaaS — rows: gasless, batch, budget caps, non-custodial,
   agent-native)
 - MIT license

@@ -1,5 +1,5 @@
 /**
- * SpraayPay configuration, persisted at ~/.spraay/spraaypay.json.
+ * SpraayBatch configuration, persisted at ~/.spraay/spraay-batch.json.
  *
  * Written atomically (temp file + rename) and readable/writable only by the user
  * (0600). Loading is tolerant: a missing file yields defaults; a corrupt file is
