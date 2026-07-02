@@ -236,8 +236,11 @@ function buildTools(
     description:
       "Pay multiple recipients USDC in one atomic transaction on Base. Provide `amount` to pay " +
       "the same amount to everyone (cheaper), or `amounts` for per-recipient amounts. Set " +
-      "`dry_run: true` to preview cost/fee without sending. Mainnet sends require " +
-      "`confirm_mainnet: true`. Amounts and fee are validated on-chain before signing.",
+      "`dry_run: true` to preview cost/fee without sending. Mainnet (base) charges a 0.30% " +
+      "protocol fee added on top of the payout (e.g. a 1000 USDC batch = 3 USDC fee), so the " +
+      "sender must hold payout + fee; Base Sepolia is free. Use `dry_run` to see the exact fee " +
+      "first. Mainnet sends require `confirm_mainnet: true`. Amounts and fee are validated " +
+      "on-chain before signing.",
     parameters: {
       type: "object",
       properties: {

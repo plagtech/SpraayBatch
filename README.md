@@ -101,6 +101,15 @@ Config lives at `~/.spraay/spraay-batch.json`. Via OpenClaw plugin config or the
 **Mainnet safety:** mainnet (`base`) payouts require explicit confirmation (`confirm_mainnet`
 tool param / `--confirm` flag); Base Sepolia is the default.
 
+## Pricing
+
+- **0.30% protocol fee on mainnet batches** — e.g. a 1000 USDC batch = **3 USDC** fee. The fee is
+  added on top of the payout (the sender approves/holds `payout + fee`), and every payment records
+  it in the ledger. Use `dry_run` / `--dry-run` to see the exact fee before sending.
+- **Testnet (Base Sepolia) is free** (0% fee) — develop and smoke-test at no cost.
+- No SpraayBatch subscription or per-seat pricing: you pay only gas (or nothing, when gasless via
+  the CDP Paymaster) plus the on-chain protocol fee on mainnet.
+
 ## On-chain contracts
 
 | Network | Spray contract | USDC |

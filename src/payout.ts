@@ -276,8 +276,9 @@ export async function executeBatchPayout(
   }
   if (req.network === "base" && !opts.confirmMainnet) {
     throw new RequiresMainnetConfirmationError(
-      `Mainnet payout of ${plan.totalCostFormatted} USDC to ${plan.recipientCount} recipient(s) ` +
-        `requires explicit confirmation. Re-run with confirmation to proceed.`,
+      `Mainnet payout: ${plan.payoutFormatted} USDC to ${plan.recipientCount} recipient(s) ` +
+        `+ ${plan.feeFormatted} USDC protocol fee = ${plan.totalCostFormatted} USDC total. ` +
+        `Mainnet requires explicit confirmation. Re-run with confirmation to proceed.`,
     );
   }
 
