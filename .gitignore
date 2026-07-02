@@ -1,0 +1,19 @@
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Machine-local Claude Code settings.
+.claude/settings.local.json
+
+# Dev-only reference clones — mined for the integration pattern, never shipped.
+# The verified contract ABI is kept (see package.json "files").
+reference/*
+!reference/spray-contract-abi.json
+
+# Never commit wallet material, secrets, or local runtime state.
+.spraay/
+*.session
+.env
+.env.*
+.paymaster-url
+.etherscan-key

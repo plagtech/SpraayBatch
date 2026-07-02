@@ -1,0 +1,64 @@
+{
+  "id": "spraaypay",
+  "name": "SpraayPay",
+  "description": "Agent-native, gasless USDC payments on Base. Non-custodial auto-wallet, per-agent budget caps, and atomic batch payouts. Agents holding only USDC (zero ETH) can pay.",
+  "skills": ["./skills"],
+  "activation": {
+    "onStartup": true
+  },
+  "enabledByDefault": true,
+  "contracts": {
+    "tools": [
+      "spraaypay_wallet_info",
+      "spraaypay_balance",
+      "spraaypay_budget_set",
+      "spraaypay_budget_status",
+      "spraaypay_batch_pay",
+      "spraaypay_receipts"
+    ]
+  },
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "walletKey": {
+        "type": "string",
+        "description": "EVM wallet private key (0x + 64 hex). Optional — auto-generated and saved to ~/.spraay/.session if not set."
+      },
+      "network": {
+        "type": "string",
+        "enum": ["base", "base-sepolia"],
+        "description": "Base network for payments. Defaults to base-sepolia until you opt into mainnet."
+      },
+      "sponsorship": {
+        "type": "object",
+        "description": "Gasless (CDP Paymaster) sponsorship settings.",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether to sponsor gas so USDC-only agents can transact (needs paymasterUrl)."
+          },
+          "capUsd": {
+            "type": "number",
+            "description": "Optional upper bound on sponsored gas spend (per period). Local enforcement is a future hook; the authoritative cap is your CDP dashboard paymaster policy."
+          }
+        }
+      },
+      "paymasterUrl": {
+        "type": "string",
+        "description": "CDP Paymaster & Bundler RPC URL (https://api.developer.coinbase.com/rpc/v1/base/<KEY>). When set and sponsorship is enabled, batch payouts run gasless via an ERC-4337 smart account. Also settable via CDP_PAYMASTER_URL env var."
+      }
+    }
+  },
+  "uiHints": {
+    "walletKey": {
+      "label": "Wallet Private Key",
+      "sensitive": true,
+      "placeholder": "0x... (optional — auto-generated)"
+    },
+    "paymasterUrl": {
+      "label": "CDP Paymaster URL",
+      "sensitive": true,
+      "placeholder": "https://api.developer.coinbase.com/rpc/v1/base/<KEY>"
+    }
+  }
+}
