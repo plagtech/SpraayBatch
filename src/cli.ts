@@ -69,11 +69,28 @@ function gaslessFields(config: SpraayConfig): Pick<PayoutRequest, "gasless" | "p
     : {};
 }
 
+/**
+ * ASCII spray-burst banner: seven straight rays fanning up-and-out from a nozzle
+ * ring `(o)` at bottom center. Pure ASCII (no box-drawing/emoji) so it renders in
+ * classic PowerShell conhost. Version is read from version.ts.
+ */
+function banner(): string {
+  return [
+    "  \\ \\ \\   |   / / /",
+    `   \\ \\ \\  |  / / /    SPRAAY BATCH  v${VERSION}`,
+    "    \\ \\ \\ | / / /     batch USDC payouts on Base",
+    "     \\ \\ \\|/ / /",
+    "         (o)",
+  ].join("\n");
+}
+
 async function info(): Promise<void> {
   const config = ensureConfig();
   const wallet = resolveWallet();
   const gasless = gaslessActive(config);
   const funding = await fundingAddress(config, wallet);
+  out(banner());
+  out("");
   out(
     [
       `Funding : ${funding}${gasless ? "  (smart account)" : ""}`,
