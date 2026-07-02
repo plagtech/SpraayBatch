@@ -9,10 +9,9 @@ CDP Paymaster). Set per-agent budget caps so a parent agent can bound what each 
 curl -fsSL https://spraay.app/spraaypay-install | bash
 ```
 
-<!-- TODO: replace with the real animated walkthrough (docs/demo.gif) -->
-![SpraayPay demo — animated walkthrough coming soon](docs/demo.gif)
-
-> 🎬 _Demo GIF coming soon._
+<p align="center">
+  <img src="docs/demo.gif" alt="SpraayPay demo — gasless USDC batch payout from an agent" width="720">
+</p>
 
 ---
 
