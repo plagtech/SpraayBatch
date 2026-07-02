@@ -1,7 +1,7 @@
 {
   "id": "spraay-batch",
   "name": "SpraayBatch",
-  "description": "Agent-native, gasless USDC payments on Base. Non-custodial auto-wallet, per-agent budget caps, and atomic batch payouts. Agents holding only USDC (zero ETH) can pay.",
+  "description": "Batch USDC payouts for AI agents — pay up to 200 recipients in one atomic transaction on Base. Gasless via CDP Paymaster (agents holding only USDC, zero ETH, can pay), non-custodial auto-wallet, per-agent budget caps.",
   "skills": ["./skills"],
   "activation": {
     "onStartup": true
