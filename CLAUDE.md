@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 > budget enforced, ledger recorded (tx `0xaac7cafb…`). **Live *gasless* send also verified on
 > Base Sepolia**: a sponsored `approve`+`sprayEqual` UserOp from the smart account `0xD30B…`
 > (tx `0xcaead8cc…`) — smart account paid **0 ETH** (fully sponsored by the CDP Paymaster), USDC
-> debited correctly, account auto-deployed via initCode. Requires USDC **and** the Spray contract
+> debited correctly, account auto-deployed via initCode. Requires the token **and** the Spray contract
 > to be allowlisted in the CDP paymaster policy.
 >
 > **RENAMED 2026-07-02: SpraayPay → SpraayBatch (v0.1 → v0.2.0).** npm package `spraaypay` →
