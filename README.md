@@ -21,6 +21,7 @@ npm install spraay-batch
 | ---------------------------- | :-----------: | :----------: | :------------------: | :----------: |
 | **Gasless** (zero-ETH sender) |  ✅ CDP Paymaster |      ❌       |          ❌          |  ⚠️ varies   |
 | **Batch** (N recipients, 1 atomic tx) |      ✅       |   ❌ one-by-one   |      ⚠️ manual       |      ✅      |
+| **Multi-token** (any ERC-20 on Base) |  ✅ address or symbol |      ✅       |          ✅          |  ⚠️ limited set |
 | **Budget caps** (per agent)  |      ✅       |      ❌       |    ⚠️ policy module   |   ⚠️ seat-based |
 | **Non-custodial** (key stays local) |      ✅       |      ✅       |          ✅          |  ❌ custodial |
 | **Agent-native** (programmatic tools) |      ✅       |      ❌       |          ❌          |      ❌      |
@@ -55,6 +56,7 @@ Then, from your agent, call the `spraay_batch_pay` tool — or test by hand:
 ```bash
 spraay-batch pay 10 0xRecipientA 0xRecipientB --dry-run     # preview cost + fee, no send
 spraay-batch pay 10 0xRecipientA 0xRecipientB               # pay each 10 USDC in one tx
+spraay-batch pay 0.5 0xRecipientA 0xRecipientB --token WETH # or any ERC-20 (symbol or 0x address)
 ```
 
 ## Agent tools
@@ -64,26 +66,26 @@ Agents are the primary consumer. The plugin registers these tools (`contracts.to
 | Tool | What it does |
 | --- | --- |
 | `spraay_wallet_info` | Funding address, owner, network, gasless status, funding link |
-| `spraay_balance` | Live USDC balance of the funding address |
+| `spraay_balance` | Live balance of the funding address (`token` = any ERC-20; defaults to USDC) |
 | `spraay_budget_set` | Set/clear a sub-agent's spend cap (USDC) |
 | `spraay_budget_status` | Cap / spent / remaining for one or all agents |
-| `spraay_batch_pay` | Pay N recipients in one atomic tx (`amount` = same to all, or `amounts` = per-recipient); `dry_run`, `agent_id`, `confirm_mainnet` |
-| `spraay_receipts` | Recent payments from the local ledger |
+| `spraay_batch_pay` | Pay N recipients in one atomic tx (`amount` = same to all, or `amounts` = per-recipient); `token` = any ERC-20 (default USDC); `dry_run`, `agent_id`, `confirm_mainnet` |
+| `spraay_receipts` | Recent payments from the local ledger (optional `token` filter) |
 
 ## Slash-commands (for humans testing)
 
-`/wallet` · `/balance` · `/budget set <id> <usdc>` · `/receipts` · `/pay <amountEach> <addr…> [--agent id] [--dry-run] [--confirm]`
+`/wallet` · `/balance [token]` · `/budget set <id> <usdc>` · `/receipts [limit] [token]` · `/pay <amountEach> <addr…> [--token addr|symbol] [--agent id] [--dry-run] [--confirm]`
 
 ## CLI
 
 ```
 spraay-batch [info]                      Wallet address, network, file locations
-spraay-batch balance                     Live USDC balance
+spraay-batch balance [token]             Live token balance (defaults to USDC)
 spraay-batch budget set <id> <usdc>      Set a per-agent spend cap
 spraay-batch budget clear <id>           Remove a cap
 spraay-batch budget status [id]          Show cap(s)
-spraay-batch pay <amountEach> <addr...>  Pay each address the same amount [--agent id] [--dry-run] [--confirm]
-spraay-batch receipts [limit]            Recent payments
+spraay-batch pay <amountEach> <addr...>  Pay each address the same amount [--token addr|symbol] [--agent id] [--dry-run] [--confirm]
+spraay-batch receipts [limit] [token]    Recent payments (optional token filter)
 spraay-batch export-key                  Print the private key for backup (keep it secret)
 ```
 
