@@ -21,7 +21,7 @@ export function parseUsdc(value: string, decimals: number = USDC_DECIMALS): bigi
   const [whole, frac = ""] = s.split(".");
   if (frac.length > decimals) {
     throw new Error(
-      `Amount "${value}" has more than ${decimals} decimal places (USDC precision).`,
+      `Amount "${value}" has more than ${decimals} decimal places (the token's precision).`,
     );
   }
   const padded = frac.padEnd(decimals, "0");

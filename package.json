@@ -1,6 +1,6 @@
 {
   "name": "spraay-batch",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Batch USDC payouts for AI agents — pay up to 200 recipients in one atomic transaction on Base. Gasless via CDP Paymaster (agents holding only USDC, zero ETH, can pay), non-custodial auto-wallet, and per-agent budget caps. An OpenClaw plugin.",
   "type": "module",
   "main": "dist/index.js",

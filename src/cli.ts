@@ -20,6 +20,7 @@ import { CONFIG_FILE, SESSION_FILE } from "./paths.js";
 import { VERSION } from "./version.js";
 import { addressUrl, getPublicClient, networkInfo } from "./chains.js";
 import { getBalance } from "./usdc.js";
+import { resolveTokenRef } from "./tokens.js";
 import { parseUsdc } from "./amounts.js";
 import { gaslessActive, paymasterUrl, getSmartAccountAddress } from "./gasless.js";
 import type { SpraayConfig } from "./config.js";
@@ -44,13 +45,13 @@ function usage(): void {
       "",
       "Usage:",
       "  spraay-batch [info]                      Wallet address, network, file locations",
-      "  spraay-batch balance                     Live USDC balance",
+      "  spraay-batch balance [token]             Live token balance (defaults to USDC)",
       "  spraay-batch budget set <id> <usdc>      Set a per-agent spend cap",
       "  spraay-batch budget clear <id>           Remove a cap",
       "  spraay-batch budget status [id]          Show cap(s)",
       "  spraay-batch pay <amountEach> <addr...>  Pay each address the same amount",
-      "                [--agent id] [--dry-run] [--confirm]",
-      "  spraay-batch receipts [limit]            Recent payments",
+      "                [--token addr|symbol] [--agent id] [--dry-run] [--confirm]",
+      "  spraay-batch receipts [limit] [token]    Recent payments (optional token filter)",
       "  spraay-batch export-key                  Print the private key for backup",
       "  spraay-batch --help",
     ].join("\n"),
@@ -107,11 +108,12 @@ async function info(): Promise<void> {
   );
 }
 
-async function balance(): Promise<void> {
+async function balance(args: string[]): Promise<void> {
   const config = loadConfig();
   const wallet = resolveWallet();
   const funding = await fundingAddress(config, wallet);
-  const bal = await getBalance(getPublicClient(config.network), config.network, funding);
+  const tokenAddr = resolveTokenRef(config.network, args[0]).address;
+  const bal = await getBalance(getPublicClient(config.network), config.network, funding, tokenAddr);
   out(`Balance: ${bal.formatted} ${bal.symbol} on ${config.network} (${funding})`);
 }
 
@@ -149,6 +151,7 @@ function budget(args: string[]): void {
 
 async function pay(args: string[]): Promise<void> {
   let agentId: string | undefined;
+  let token: string | undefined;
   let dryRun = false;
   let confirm = false;
   const positional: string[] = [];
@@ -157,11 +160,12 @@ async function pay(args: string[]): Promise<void> {
     if (t === "--dry-run") dryRun = true;
     else if (t === "--confirm") confirm = true;
     else if (t === "--agent") agentId = args[++i];
+    else if (t === "--token") token = args[++i];
     else if (t !== undefined) positional.push(t);
   }
   const [amount, ...recipients] = positional;
   if (!amount || recipients.length === 0) {
-    err("Usage: spraay-batch pay <amountEach> <addr1> [addr2 ...] [--agent id] [--dry-run] [--confirm]");
+    err("Usage: spraay-batch pay <amountEach> <addr1> [addr2 ...] [--token addr|symbol] [--agent id] [--dry-run] [--confirm]");
     process.exitCode = 1;
     return;
   }
@@ -172,31 +176,39 @@ async function pay(args: string[]): Promise<void> {
     wallet,
     recipients,
     amount,
+    ...(token ? { token } : {}),
     ...(agentId ? { agentId } : {}),
     ...gaslessFields(config),
   };
   if (dryRun) {
     const plan = await planBatchPayout(req);
     out(
-      `DRY RUN (${plan.method}): ${plan.payoutFormatted} USDC (+${plan.feeFormatted} fee) = ` +
+      `DRY RUN (${plan.method}): ${plan.payoutFormatted} ${plan.token} (+${plan.feeFormatted} fee) = ` +
         `${plan.totalCostFormatted} to ${plan.recipientCount}. ` +
         `needsApproval=${plan.needsApproval}, balanceOk=${plan.balanceOk}, paused=${plan.paused}`,
     );
     return;
   }
   const res = await executeBatchPayout(req, { confirmMainnet: confirm });
-  out(`Paid ${res.plan.totalCostFormatted} USDC → ${res.explorer}`);
+  out(`Paid ${res.plan.totalCostFormatted} ${res.plan.token} → ${res.explorer}`);
 }
 
 function receipts(args: string[]): void {
-  const n = parseInt(args[0] ?? "", 10);
-  const rows = readReceipts(Number.isFinite(n) && n > 0 ? n : 10);
+  // Args are order-independent: a bare number is the limit, anything else a token filter.
+  let limit = 10;
+  let token: string | undefined;
+  for (const t of args) {
+    if (t === "--token") continue;
+    if (/^\d+$/.test(t)) limit = parseInt(t, 10);
+    else token = t;
+  }
+  const rows = readReceipts(limit, token);
   if (rows.length === 0) {
-    out("No payments yet.");
+    out(token ? `No ${token.toUpperCase()} payments yet.` : "No payments yet.");
     return;
   }
   for (const r of rows) {
-    out(`${r.timestamp} — ${r.method} ${r.payout} USDC (+${r.fee} fee) to ${r.recipientCount} → ${r.explorer}`);
+    out(`${r.timestamp} — ${r.method} ${r.payout} ${r.token} (+${r.fee} fee) to ${r.recipientCount} → ${r.explorer}`);
   }
 }
 
@@ -219,7 +231,7 @@ async function main(): Promise<void> {
       await info();
       return;
     case "balance":
-      await balance();
+      await balance(rest);
       return;
     case "budget":
       budget(rest);

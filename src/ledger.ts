@@ -32,8 +32,12 @@ export function appendLedger(entry: LedgerEntry): void {
   appendFileSync(LEDGER_FILE, JSON.stringify(entry) + "\n", { mode: 0o600 });
 }
 
-/** Read the most recent `limit` entries, newest first. */
-export function readReceipts(limit = 10): LedgerEntry[] {
+/**
+ * Read the most recent `limit` entries, newest first. When `token` is given (a
+ * symbol like "USDC"/"WETH", case-insensitive), only that token's payouts are
+ * returned — filtered before the limit is applied.
+ */
+export function readReceipts(limit = 10, token?: string): LedgerEntry[] {
   if (!existsSync(LEDGER_FILE)) return [];
   let text: string;
   try {
@@ -41,14 +45,16 @@ export function readReceipts(limit = 10): LedgerEntry[] {
   } catch {
     return [];
   }
+  const wanted = token?.trim().toUpperCase();
   const lines = text.split("\n").filter((l) => l.trim().length > 0);
-  const out: LedgerEntry[] = [];
-  for (const line of lines.slice(-limit).reverse()) {
+  const entries: LedgerEntry[] = [];
+  for (const line of lines) {
     try {
-      out.push(JSON.parse(line) as LedgerEntry);
+      const entry = JSON.parse(line) as LedgerEntry;
+      if (!wanted || entry.token?.toUpperCase() === wanted) entries.push(entry);
     } catch {
       /* skip a corrupt line rather than fail the whole read */
     }
   }
-  return out;
+  return entries.slice(-limit).reverse();
 }

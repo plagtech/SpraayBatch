@@ -19,7 +19,6 @@ import { SPRAY_ABI, ERC20_ABI } from "./abi.js";
 import {
   getPublicClient,
   getWalletClient,
-  networkInfo,
   requireSprayContract,
   txUrl,
 } from "./chains.js";
@@ -35,6 +34,7 @@ import {
   USDC_DECIMALS,
 } from "./amounts.js";
 import { getAllowance, getBalance } from "./usdc.js";
+import { resolveToken } from "./tokens.js";
 import { appendLedger } from "./ledger.js";
 import { BudgetStore, type BudgetCheck } from "./budgets.js";
 import { getSmartAccountAddress, sendSponsoredCalls, type UserOpCall } from "./gasless.js";
@@ -45,6 +45,12 @@ export class PayoutError extends Error {}
 export interface PayoutRequest {
   network: SpraayNetwork;
   wallet: WalletInfo;
+  /**
+   * Token to pay out: a 0x address or a known symbol (USDC, WETH, DAI, …).
+   * Omit to default to USDC. Any standard ERC-20 on Base is supported; fee-on-transfer
+   * and rebasing tokens are rejected (see tokens.ts).
+   */
+  token?: string;
   recipients: string[];
   /** Per-recipient amounts (sprayToken). Mutually exclusive with `amount`. */
   amounts?: string[];
@@ -111,7 +117,10 @@ export function resolvePayout(
 
 export interface PayoutPlan extends ResolvedPayout {
   network: SpraayNetwork;
-  token: "USDC";
+  /** On-chain symbol of the token being paid out (e.g. "USDC", "WETH"). */
+  token: string;
+  /** The token contract the payout pulls from. */
+  tokenAddress: `0x${string}`;
   sprayContract: `0x${string}`;
   /** Address that funds the payout (smart account when gasless, else the EOA). */
   payer: `0x${string}`;
@@ -149,20 +158,20 @@ export async function planBatchPayout(
 ): Promise<PayoutPlan> {
   const publicClient = deps.publicClient ?? getPublicClient(req.network);
   const sprayContract = requireSprayContract(req.network);
-  const usdc = networkInfo(req.network).usdc;
 
-  // When gasless, the payer (holds USDC, is msg.sender for the spray) is the smart
-  // account, not the EOA. Balance/allowance are checked against the payer.
+  // Resolve the payout token (defaults to USDC). Reads decimals()/symbol() on-chain
+  // and rejects fee-on-transfer / rebasing tokens that break batch accounting.
+  const token = await resolveToken(publicClient, req.network, req.token);
+
+  // When gasless, the payer (holds the token, is msg.sender for the spray) is the
+  // smart account, not the EOA. Balance/allowance are checked against the payer.
   const gasless = req.gasless === true && !!req.paymasterUrl;
   const payer = gasless
     ? await getSmartAccountAddress(req.network, req.wallet)
     : req.wallet.address;
 
-  // USDC decimals drive amount parsing.
-  const decimals = await publicClient
-    .readContract({ address: usdc, abi: ERC20_ABI, functionName: "decimals" })
-    .then((d) => Number(d))
-    .catch(() => USDC_DECIMALS);
+  // The token's own decimals drive amount parsing.
+  const decimals = token.decimals;
 
   const resolved = resolvePayout(req.recipients, req.amounts, req.amount, decimals);
 
@@ -176,8 +185,8 @@ export async function planBatchPayout(
     }),
     publicClient.readContract({ address: sprayContract, abi: SPRAY_ABI, functionName: "paused" }),
     publicClient.readContract({ address: sprayContract, abi: SPRAY_ABI, functionName: "MAX_RECIPIENTS" }),
-    getAllowance(publicClient, req.network, payer, sprayContract),
-    getBalance(publicClient, req.network, payer),
+    getAllowance(publicClient, req.network, payer, sprayContract, token.address),
+    getBalance(publicClient, req.network, payer, token.address),
   ]);
 
   const fee = totalCost - resolved.payout;
@@ -189,7 +198,8 @@ export async function planBatchPayout(
   return {
     ...resolved,
     network: req.network,
-    token: "USDC",
+    token: token.symbol,
+    tokenAddress: token.address,
     sprayContract,
     payer,
     gasless,
@@ -212,20 +222,21 @@ export async function planBatchPayout(
 }
 
 /** Build the spray call (sprayEqual or sprayToken) as an ERC-4337 UserOp call. */
-function buildSprayCall(plan: PayoutPlan, usdc: `0x${string}`): UserOpCall {
+function buildSprayCall(plan: PayoutPlan): UserOpCall {
+  const token = plan.tokenAddress;
   if (plan.method === "sprayEqual") {
     return {
       to: plan.sprayContract,
       abi: SPRAY_ABI,
       functionName: "sprayEqual",
-      args: [usdc, plan.addresses, plan.amountPerRecipient],
+      args: [token, plan.addresses, plan.amountPerRecipient],
     };
   }
   const tuples = plan.addresses.map((address, i) => ({
     recipient: address,
     amount: plan.amountsBase[i] ?? 0n,
   }));
-  return { to: plan.sprayContract, abi: SPRAY_ABI, functionName: "sprayToken", args: [usdc, tuples] };
+  return { to: plan.sprayContract, abi: SPRAY_ABI, functionName: "sprayToken", args: [token, tuples] };
 }
 
 export interface PayoutResult {
@@ -268,7 +279,7 @@ export async function executeBatchPayout(
   }
   if (!plan.balanceOk) {
     throw new PayoutError(
-      `Insufficient USDC: need ${plan.totalCostFormatted} (payout + fee) but balance is ${formatUsdc(
+      `Insufficient ${plan.token}: need ${plan.totalCostFormatted} (payout + fee) but balance is ${formatUsdc(
         plan.balance,
         plan.decimals,
       )}. Fund ${plan.payer}${plan.gasless ? " (smart account)" : ""}.`,
@@ -282,8 +293,8 @@ export async function executeBatchPayout(
     );
   }
 
-  const usdc = networkInfo(req.network).usdc;
-  const sprayCall = buildSprayCall(plan, usdc);
+  const token = plan.tokenAddress;
+  const sprayCall = buildSprayCall(plan);
 
   let approvalTxHash: `0x${string}` | undefined;
   let txHash: `0x${string}`;
@@ -293,7 +304,7 @@ export async function executeBatchPayout(
     const calls: UserOpCall[] = [];
     if (plan.needsApproval) {
       calls.push({
-        to: usdc,
+        to: token,
         abi: ERC20_ABI,
         functionName: "approve",
         args: [plan.sprayContract, plan.totalCost],
@@ -310,7 +321,7 @@ export async function executeBatchPayout(
     if (plan.needsApproval) {
       const { request } = await publicClient.simulateContract({
         account,
-        address: usdc,
+        address: token,
         abi: ERC20_ABI,
         functionName: "approve",
         args: [plan.sprayContract, plan.totalCost],
@@ -325,7 +336,7 @@ export async function executeBatchPayout(
         address: plan.sprayContract,
         abi: SPRAY_ABI,
         functionName: "sprayEqual",
-        args: [usdc, plan.addresses, plan.amountPerRecipient],
+        args: [token, plan.addresses, plan.amountPerRecipient],
       });
       txHash = await walletClient.writeContract(request);
     } else {
@@ -338,7 +349,7 @@ export async function executeBatchPayout(
         address: plan.sprayContract,
         abi: SPRAY_ABI,
         functionName: "sprayToken",
-        args: [usdc, tuples],
+        args: [token, tuples],
       });
       txHash = await walletClient.writeContract(request);
     }
@@ -352,7 +363,7 @@ export async function executeBatchPayout(
     network: req.network,
     type: "batch",
     method: plan.method,
-    token: "USDC",
+    token: plan.token,
     recipientCount: plan.recipientCount,
     recipients: plan.addresses,
     amounts: plan.amountsBase.map((a) => formatUsdc(a, plan.decimals)),

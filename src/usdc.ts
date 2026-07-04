@@ -1,6 +1,9 @@
 /**
- * USDC reads on Base: balance, decimals, symbol, allowance.
+ * ERC-20 token reads on Base: balance, decimals, symbol, allowance.
  * Non-custodial — reads only; spending is done in payout.ts.
+ *
+ * Each read defaults to the network's USDC token but accepts an explicit token
+ * address, so the same helpers serve any ERC-20 (see tokens.ts / resolveToken).
  */
 
 import type { PublicClient } from "viem";
@@ -16,13 +19,19 @@ export interface UsdcBalance {
   symbol: string;
 }
 
+/** The token to read against — defaults to the network's USDC when omitted. */
+function tokenAddress(network: SpraayNetwork, token?: `0x${string}`): `0x${string}` {
+  return token ?? networkInfo(network).usdc;
+}
+
 export async function getDecimals(
   client: PublicClient,
   network: SpraayNetwork,
+  token?: `0x${string}`,
 ): Promise<number> {
   try {
     const d = await client.readContract({
-      address: networkInfo(network).usdc,
+      address: tokenAddress(network, token),
       abi: ERC20_ABI,
       functionName: "decimals",
     });
@@ -36,13 +45,14 @@ export async function getBalance(
   client: PublicClient,
   network: SpraayNetwork,
   address: `0x${string}`,
+  token?: `0x${string}`,
 ): Promise<UsdcBalance> {
-  const usdc = networkInfo(network).usdc;
+  const tokenAddr = tokenAddress(network, token);
   const [raw, decimals, symbol] = await Promise.all([
-    client.readContract({ address: usdc, abi: ERC20_ABI, functionName: "balanceOf", args: [address] }),
-    getDecimals(client, network),
+    client.readContract({ address: tokenAddr, abi: ERC20_ABI, functionName: "balanceOf", args: [address] }),
+    getDecimals(client, network, tokenAddr),
     client
-      .readContract({ address: usdc, abi: ERC20_ABI, functionName: "symbol" })
+      .readContract({ address: tokenAddr, abi: ERC20_ABI, functionName: "symbol" })
       .catch(() => "USDC"),
   ]);
   return { raw, decimals, formatted: formatUsdc(raw, decimals), symbol };
@@ -53,9 +63,10 @@ export async function getAllowance(
   network: SpraayNetwork,
   owner: `0x${string}`,
   spender: `0x${string}`,
+  token?: `0x${string}`,
 ): Promise<bigint> {
   return client.readContract({
-    address: networkInfo(network).usdc,
+    address: tokenAddress(network, token),
     abi: ERC20_ABI,
     functionName: "allowance",
     args: [owner, spender],

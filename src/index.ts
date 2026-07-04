@@ -28,6 +28,7 @@ import { CONFIG_FILE } from "./paths.js";
 import { VERSION } from "./version.js";
 import { addressUrl, getPublicClient, networkInfo } from "./chains.js";
 import { getBalance } from "./usdc.js";
+import { resolveTokenRef } from "./tokens.js";
 import { gaslessActive, paymasterUrl, getSmartAccountAddress } from "./gasless.js";
 import { parseUsdc, formatUsdc } from "./amounts.js";
 import { BudgetStore } from "./budgets.js";
@@ -140,12 +141,23 @@ function buildTools(
   const balance: OpenClawToolDefinition = {
     name: "spraay_balance",
     description:
-      "Get the funding address's live USDC balance on the active Base network (the smart account when gasless).",
-    parameters: { type: "object", properties: {}, required: [] },
-    execute: async () => {
+      "Get the funding address's live token balance on the active Base network (the smart account " +
+      "when gasless). Defaults to USDC; pass `token` (a 0x address or known symbol) for any ERC-20.",
+    parameters: {
+      type: "object",
+      properties: {
+        token: {
+          type: "string",
+          description: "Token to check: a 0x address or known symbol (USDC, WETH, DAI, ...). Omit for USDC.",
+        },
+      },
+      required: [],
+    },
+    execute: async (_id, params) => {
       try {
         const funding = await fundingAddress(config, wallet);
-        const bal = await getBalance(getPublicClient(network), network, funding);
+        const tokenAddr = resolveTokenRef(network, params.token as string | undefined).address;
+        const bal = await getBalance(getPublicClient(network), network, funding, tokenAddr);
         return {
           ok: true,
           address: funding,
@@ -234,13 +246,15 @@ function buildTools(
   const batchPay: OpenClawToolDefinition = {
     name: "spraay_batch_pay",
     description:
-      "Pay multiple recipients USDC in one atomic transaction on Base. Provide `amount` to pay " +
-      "the same amount to everyone (cheaper), or `amounts` for per-recipient amounts. Set " +
+      "Pay multiple recipients in one atomic transaction on Base. Pays USDC by default; set " +
+      "`token` to any ERC-20 (a 0x address or a known symbol like WETH/DAI/cbBTC) to pay that " +
+      "token instead. Provide `amount` to pay the same amount to everyone (cheaper), or " +
+      "`amounts` for per-recipient amounts (amounts are in the chosen token's units). Set " +
       "`dry_run: true` to preview cost/fee without sending. Mainnet (base) charges a 0.30% " +
-      "protocol fee added on top of the payout (e.g. a 1000 USDC batch = 3 USDC fee), so the " +
+      "protocol fee added on top of the payout (e.g. a 1000-token batch = 3-token fee), so the " +
       "sender must hold payout + fee; Base Sepolia is free. Use `dry_run` to see the exact fee " +
-      "first. Mainnet sends require `confirm_mainnet: true`. Amounts and fee are validated " +
-      "on-chain before signing.",
+      "first. Mainnet sends require `confirm_mainnet: true`. Fee-on-transfer and rebasing tokens " +
+      "are rejected. Amounts and fee are validated on-chain before signing.",
     parameters: {
       type: "object",
       properties: {
@@ -249,14 +263,19 @@ function buildTools(
           items: { type: "string" },
           description: "Recipient addresses (0x...).",
         },
+        token: {
+          type: "string",
+          description:
+            "Token to pay: a 0x address or a known symbol (USDC, WETH, DAI, cbBTC, ...). Omit for USDC.",
+        },
         amount: {
           type: "string",
-          description: "USDC amount paid to EVERY recipient (use this OR amounts).",
+          description: "Token amount paid to EVERY recipient (use this OR amounts).",
         },
         amounts: {
           type: "array",
           items: { type: "string" },
-          description: "Per-recipient USDC amounts, same length/order as recipients.",
+          description: "Per-recipient token amounts, same length/order as recipients.",
         },
         agent_id: { type: "string", description: "Sub-agent to bill (enforces its budget)." },
         dry_run: { type: "boolean", description: "Preview only; do not send." },
@@ -270,6 +289,7 @@ function buildTools(
           network,
           wallet,
           recipients: (params.recipients as string[]) ?? [],
+          ...(params.token !== undefined ? { token: String(params.token) } : {}),
           ...(params.amounts !== undefined ? { amounts: params.amounts as string[] } : {}),
           ...(params.amount !== undefined ? { amount: String(params.amount) } : {}),
           ...(params.agent_id !== undefined ? { agentId: String(params.agent_id) } : {}),
@@ -301,16 +321,21 @@ function buildTools(
 
   const receipts: OpenClawToolDefinition = {
     name: "spraay_receipts",
-    description: "List recent payments from the local ledger (newest first), with Basescan links.",
+    description:
+      "List recent payments from the local ledger (newest first), with Basescan links. " +
+      "Pass `token` (a symbol like USDC/WETH) to show only payouts of that token.",
     parameters: {
       type: "object",
-      properties: { limit: { type: "number", description: "Max entries (default 10)." } },
+      properties: {
+        limit: { type: "number", description: "Max entries (default 10)." },
+        token: { type: "string", description: "Optional token symbol filter (e.g. USDC, WETH)." },
+      },
       required: [],
     },
     execute: async (_id, params) => {
       try {
         const limit = typeof params.limit === "number" ? params.limit : 10;
-        return { ok: true, receipts: readReceipts(limit) };
+        return { ok: true, receipts: readReceipts(limit, params.token as string | undefined) };
       } catch (e) {
         return { ok: false, error: msg(e) };
       }
@@ -359,11 +384,14 @@ function buildCommands(
 
   const balance_: OpenClawPluginCommandDefinition = {
     name: "balance",
-    description: "Show your funding address's live USDC balance.",
-    handler: async () => {
+    description: "Show your funding address's live token balance. `/balance [token]` (defaults to USDC).",
+    acceptsArgs: true,
+    handler: async (ctx) => {
       try {
         const funding = await fundingAddress(config, wallet);
-        const bal = await getBalance(getPublicClient(network), network, funding);
+        const tokenRef = (ctx.args ?? "").trim() || undefined;
+        const tokenAddr = resolveTokenRef(network, tokenRef).address;
+        const bal = await getBalance(getPublicClient(network), network, funding, tokenAddr);
         return { text: `Balance: ${bal.formatted} ${bal.symbol} on ${network} (${funding})` };
       } catch (e) {
         return { isError: true, text: `Balance error: ${msg(e)}` };
@@ -409,17 +437,24 @@ function buildCommands(
 
   const receipts_: OpenClawPluginCommandDefinition = {
     name: "receipts",
-    description: "Show recent payments. `/receipts [limit]`",
+    description: "Show recent payments. `/receipts [limit] [tokenSymbol]`",
     acceptsArgs: true,
     handler: (ctx) => {
-      const n = parseInt((ctx.args ?? "").trim(), 10);
-      const rows = readReceipts(Number.isFinite(n) && n > 0 ? n : 10);
-      if (rows.length === 0) return { text: "No payments yet." };
+      // Args are order-independent: a bare number is the limit, anything else a token filter.
+      let limit = 10;
+      let token: string | undefined;
+      for (const t of (ctx.args ?? "").trim().split(/\s+/).filter(Boolean)) {
+        if (t === "--token") continue;
+        if (/^\d+$/.test(t)) limit = parseInt(t, 10);
+        else token = t;
+      }
+      const rows = readReceipts(limit, token);
+      if (rows.length === 0) return { text: token ? `No ${token.toUpperCase()} payments yet.` : "No payments yet." };
       return {
         text: rows
           .map(
             (r) =>
-              `${r.timestamp} — ${r.method} ${r.payout} USDC (+${r.fee} fee) to ${r.recipientCount} → ${r.explorer}`,
+              `${r.timestamp} — ${r.method} ${r.payout} ${r.token} (+${r.fee} fee) to ${r.recipientCount} → ${r.explorer}`,
           )
           .join("\n"),
       };
@@ -429,12 +464,13 @@ function buildCommands(
   const pay_: OpenClawPluginCommandDefinition = {
     name: "pay",
     description:
-      "Pay each address the same USDC amount: `/pay <amountEach> <addr1> <addr2> ... [--agent id] [--dry-run] [--confirm]`",
+      "Pay each address the same amount: `/pay <amountEach> <addr1> <addr2> ... [--token addr|symbol] [--agent id] [--dry-run] [--confirm]` (defaults to USDC)",
     acceptsArgs: true,
     handler: async (ctx) => {
       try {
         const tokens = (ctx.args ?? "").trim().split(/\s+/).filter(Boolean);
         let agentId: string | undefined;
+        let token: string | undefined;
         let dryRun = false;
         let confirm = false;
         const positional: string[] = [];
@@ -443,17 +479,19 @@ function buildCommands(
           if (t === "--dry-run") dryRun = true;
           else if (t === "--confirm") confirm = true;
           else if (t === "--agent") agentId = tokens[++i];
+          else if (t === "--token") token = tokens[++i];
           else if (t !== undefined) positional.push(t);
         }
         const [amount, ...recipients] = positional;
         if (!amount || recipients.length === 0) {
-          return { isError: true, text: "Usage: /pay <amountEach> <addr1> [addr2 ...] [--agent id] [--dry-run] [--confirm]" };
+          return { isError: true, text: "Usage: /pay <amountEach> <addr1> [addr2 ...] [--token addr|symbol] [--agent id] [--dry-run] [--confirm]" };
         }
         const req: PayoutRequest = {
           network,
           wallet,
           recipients,
           amount,
+          ...(token ? { token } : {}),
           ...(agentId ? { agentId } : {}),
           ...gaslessFields(config),
         };
@@ -461,11 +499,11 @@ function buildCommands(
           const plan = await planBatchPayout(req, { budgetStore: budgets });
           const s = summarizePlan(plan);
           return {
-            text: `DRY RUN (${s.method}${s.gasless ? ", gasless" : ""}): ${s.payout} USDC (+${s.fee} fee) = ${s.totalCost} to ${s.recipientCount}. needsApproval=${s.needsApproval}, balanceOk=${s.balanceOk}`,
+            text: `DRY RUN (${s.method}${s.gasless ? ", gasless" : ""}): ${s.payout} ${s.token} (+${s.fee} fee) = ${s.totalCost} to ${s.recipientCount}. needsApproval=${s.needsApproval}, balanceOk=${s.balanceOk}`,
           };
         }
         const res = await executeBatchPayout(req, { budgetStore: budgets, confirmMainnet: confirm });
-        return { text: `Paid ${res.plan.totalCostFormatted} USDC → ${res.explorer}` };
+        return { text: `Paid ${res.plan.totalCostFormatted} ${res.plan.token} → ${res.explorer}` };
       } catch (e) {
         if (e instanceof RequiresMainnetConfirmationError) {
           return { isError: true, text: `${msg(e)} Add --confirm to send on mainnet.` };
