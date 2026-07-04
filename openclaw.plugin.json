@@ -1,7 +1,7 @@
 {
   "id": "spraay-batch",
   "name": "SpraayBatch",
-  "description": "Batch USDC payouts for AI agents — pay up to 200 recipients in one atomic transaction on Base. Gasless via CDP Paymaster (agents holding only USDC, zero ETH, can pay), non-custodial auto-wallet, per-agent budget caps.",
+  "description": "Batch ERC-20 payouts for AI agents — pay up to 200 recipients in one atomic transaction on Base with any token. Gasless via CDP Paymaster (agents holding only tokens, zero ETH, can pay), non-custodial auto-wallet, and per-agent budget caps. An OpenClaw plugin.",
   "skills": ["./skills"],
   "activation": {
     "onStartup": true
