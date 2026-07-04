@@ -57,7 +57,7 @@
     "openclaw-plugin",
     "agent",
     "payments",
-    "usdc",
+    "erc-20",
     "base",
     "gasless",
     "paymaster",
