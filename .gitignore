@@ -2,6 +2,9 @@ node_modules/
 dist/
 *.tsbuildinfo
 
+# npm pack output.
+*.tgz
+
 # Machine-local Claude Code settings.
 .claude/settings.local.json
 
