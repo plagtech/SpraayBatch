@@ -23,7 +23,7 @@
       "walletKey": {
         "type": "string",
         "title": "Wallet Private Key",
-        "description": "Sensitive. EVM wallet private key (0x + 64 hex). Optional — auto-generated and saved to ~/.spraay/.session if not set."
+        "description": "Sensitive. EVM wallet private key (0x + 64 hex). OPTIONAL — if you leave this empty, SpraayBatch AUTO-GENERATES a brand-new private key on first run and stores it in plaintext at ~/.spraay/.session with 0600 (owner-read/write only) permissions; the directory is created 0700. That key controls real funds and is the ONLY copy — it is never uploaded, escrowed, or recoverable by anyone, so if the file is lost or the machine dies, any funds it holds are gone permanently. BACK IT UP as soon as it is created: run `spraay-batch export-key` and store the output in a password manager. Treat the key and any backup like cash: never commit it, paste it into a chat, or put it in a shared config."
       },
       "network": {
         "type": "string",
@@ -36,7 +36,7 @@
         "properties": {
           "enabled": {
             "type": "boolean",
-            "description": "Whether to sponsor gas so USDC-only agents can transact (needs paymasterUrl)."
+            "description": "Whether to sponsor gas so agents holding only ERC-20 tokens (zero ETH) can transact (needs paymasterUrl)."
           },
           "capUsd": {
             "type": "number",

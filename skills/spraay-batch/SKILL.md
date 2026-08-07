@@ -1,10 +1,11 @@
 ---
 name: spraay-batch
 description: >-
-  Send USDC payments on Base from an OpenClaw agent — check the wallet balance,
-  set per-agent budget caps, and pay one or many recipients in a single atomic
-  batch. Non-custodial and gasless (the agent needs only USDC, no ETH). Use when
-  an agent must pay someone, run payroll, or manage a spend budget.
+  Send batch ERC-20 payments on Base from an OpenClaw agent — any token,
+  defaults to USDC. Check the wallet balance, set per-agent budget caps, and pay
+  one or many recipients in a single atomic batch. Non-custodial and gasless (the
+  agent needs only the token it is paying, no ETH). Use when an agent must pay
+  someone, run payroll, or manage a spend budget.
 ---
 
 # SpraayBatch

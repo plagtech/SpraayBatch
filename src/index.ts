@@ -1,7 +1,8 @@
 /**
  * SpraayBatch — OpenClaw plugin entry point.
  *
- * Agent-native, gasless USDC payments on Base. Wires the plugin into OpenClaw,
+ * Agent-native, gasless batch ERC-20 payments on Base (any token; defaults to
+ * USDC). Wires the plugin into OpenClaw,
  * ensures local config, auto-resolves a non-custodial wallet, and registers the
  * payment surface (Phase 2): wallet/balance, per-agent budgets, batch payout, and
  * the receipts ledger. Exposed three ways, priority: agent tools (primary),
@@ -24,7 +25,7 @@ import {
   WalletFileError,
   type WalletInfo,
 } from "./wallet.js";
-import { CONFIG_FILE } from "./paths.js";
+import { CONFIG_FILE, SESSION_FILE } from "./paths.js";
 import { VERSION } from "./version.js";
 import { addressUrl, getPublicClient, networkInfo } from "./chains.js";
 import { getBalance } from "./usdc.js";
@@ -520,7 +521,8 @@ const plugin: OpenClawPluginDefinition = {
   id: "spraay-batch",
   name: "SpraayBatch",
   version: VERSION,
-  description: "Agent-native, gasless USDC payments on Base.",
+  description:
+    "Agent-native, gasless batch ERC-20 payments on Base (any token; defaults to USDC).",
 
   register(api: OpenClawPluginApi) {
     try {
@@ -538,6 +540,18 @@ const plugin: OpenClawPluginDefinition = {
       }
 
       const budgets = new BudgetStore();
+
+      // First run: a key was just minted and is the only copy. Warn loudly — a user
+      // who never sees this can fund an address whose key they have not backed up.
+      if (wallet.source === "generated") {
+        api.logger.warn(
+          `SpraayBatch: NEW WALLET CREATED — ${wallet.address}. A private key was auto-generated ` +
+            `and saved to ${SESSION_FILE} (0600, owner-only). This is the ONLY copy and nobody can ` +
+            `recover it for you: if that file is lost, any funds it holds are lost with it. Back it ` +
+            `up now with \`spraay-batch export-key\` and store the output somewhere safe (e.g. a ` +
+            `password manager). Never share or commit the key.`,
+        );
+      }
 
       api.logger.info(`SpraayBatch ${VERSION} — ${describeWallet(wallet)}`);
       api.logger.info(

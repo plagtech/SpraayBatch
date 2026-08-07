@@ -1,8 +1,18 @@
 #!/usr/bin/env bash
 #
-# SpraayBatch one-line installer (ClawRouter-style).
+# SpraayBatch installer.
 #
-#   curl -fsSL https://spraay.app/spraay-batch-install | bash
+# PREFERRED — install straight from ClawHub, no script needed:
+#
+#   openclaw plugins install clawhub:spraay-batch
+#
+# If you do want this convenience script, download and READ it before running it.
+# Never pipe a remote script into a shell (`curl ... | bash`): you execute code you
+# have never seen, and a compromised or swapped host owns your machine.
+#
+#   curl -fsSL -o spraay-batch-install.sh https://spraay.app/spraay-batch-install
+#   less spraay-batch-install.sh     # inspect it
+#   bash spraay-batch-install.sh     # then run it
 #
 # Installs SpraayBatch as an OpenClaw plugin, then restarts the gateway so it loads.
 # On first load the plugin auto-creates a non-custodial wallet at ~/.spraay/.session
@@ -12,7 +22,8 @@
 
 set -euo pipefail
 
-PKG="spraay-batch"
+# ClawHub-qualified plugin ref — matches the documented install path above.
+PKG="clawhub:spraay-batch"
 
 info() { printf '\033[36m[spraay-batch]\033[0m %s\n' "$*"; }
 err()  { printf '\033[31m[spraay-batch]\033[0m %s\n' "$*" >&2; }

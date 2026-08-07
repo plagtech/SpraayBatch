@@ -1,9 +1,10 @@
 # SpraayBatch
 
-**Agent-native, gasless USDC payments on Base — for [OpenClaw](https://github.com/BlockRunAI/ClawRouter).**
+**Agent-native, gasless batch ERC-20 payments on Base (any token; defaults to USDC) — for
+[OpenClaw](https://github.com/BlockRunAI/ClawRouter).**
 An autonomous agent gets its own non-custodial wallet and can pay one or many recipients in a
-single atomic transaction — holding **only USDC, zero ETH** (gas is sponsored via the Coinbase
-CDP Paymaster). Set per-agent budget caps so a parent agent can bound what each sub-agent spends.
+single atomic transaction — holding **only the token it pays, zero ETH** (gas is sponsored via
+the Coinbase CDP Paymaster). Set per-agent budget caps so a parent agent can bound what each sub-agent spends.
 
 ```bash
 npm install spraay-batch

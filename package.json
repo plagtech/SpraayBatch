@@ -1,6 +1,6 @@
 {
   "name": "spraay-batch",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Batch ERC-20 payouts for AI agents — pay up to 200 recipients in one atomic transaction on Base with any token. Gasless via CDP Paymaster (agents holding only tokens, zero ETH, can pay), non-custodial auto-wallet, and per-agent budget caps. An OpenClaw plugin.",
   "type": "module",
   "main": "dist/index.js",
@@ -22,10 +22,10 @@
     ],
     "compat": {
       "pluginApi": ">=2026.3.24",
-      "minGatewayVersion": "2026.5.2"
+      "minGatewayVersion": "2026.6.34"
     },
     "build": {
-      "openclawVersion": "2026.6.11"
+      "openclawVersion": "2026.7.1-2"
     }
   },
   "exports": {
@@ -73,7 +73,7 @@
     "viem": "^2.39.3"
   },
   "peerDependencies": {
-    "openclaw": ">=2026.3.24"
+    "openclaw": ">=2026.6.34 || >=2026.7.1-2"
   },
   "peerDependenciesMeta": {
     "openclaw": {
@@ -85,7 +85,7 @@
     "@types/node": "^22.10.0",
     "eslint": "^10.2.0",
     "prettier": "^3.8.1",
-    "tsup": "^8.0.0",
+    "tsup": "^8.5.1",
     "typescript": "^5.7.0",
     "typescript-eslint": "^8.58.1",
     "vitest": "^4.1.3"

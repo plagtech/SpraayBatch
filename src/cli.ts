@@ -41,7 +41,7 @@ const msg = (e: unknown) => (e instanceof Error ? e.message : String(e));
 function usage(): void {
   out(
     [
-      `SpraayBatch ${VERSION} — agent-native gasless USDC payments on Base`,
+      `SpraayBatch ${VERSION} — agent-native gasless batch ERC-20 payments on Base (any token; defaults to USDC)`,
       "",
       "Usage:",
       "  spraay-batch [info]                      Wallet address, network, file locations",
