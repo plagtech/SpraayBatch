@@ -4,7 +4,7 @@
  * Agent-native, gasless batch ERC-20 payments on Base (any token; defaults to
  * USDC). Wires the plugin into OpenClaw,
  * ensures local config, auto-resolves a non-custodial wallet, and registers the
- * payment surface (Phase 2): wallet/balance, per-agent budgets, batch payout, and
+ * payment surface: wallet/balance, per-agent budgets, batch payout, and
  * the receipts ledger. Exposed three ways, priority: agent tools (primary),
  * slash-commands, and a bundled skill.
  *

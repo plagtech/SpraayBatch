@@ -20,7 +20,7 @@ import { SPRAAY_DIR, CONFIG_FILE } from "./paths.js";
 export type SpraayNetwork = "base" | "base-sepolia";
 
 export interface SponsorshipConfig {
-  /** Sponsor gas via the CDP Paymaster so USDC-only agents can transact (Phase 3). */
+  /** Sponsor gas via the CDP Paymaster so token-only (zero-ETH) agents can transact. */
   enabled: boolean;
   /** Optional ceiling on sponsored gas spend; enforcement added later. */
   capUsd?: number;

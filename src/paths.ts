@@ -15,8 +15,8 @@ export const SESSION_FILE = join(SPRAAY_DIR, ".session");
 /** Plugin configuration. */
 export const CONFIG_FILE = join(SPRAAY_DIR, "spraay-batch.json");
 
-/** Per-agent budget caps + spend history (Phase 2). */
+/** Per-agent budget caps + spend history. */
 export const BUDGETS_FILE = join(SPRAAY_DIR, "budgets.json");
 
-/** Append-only payment ledger (Phase 2). */
+/** Append-only payment ledger. */
 export const LEDGER_FILE = join(SPRAAY_DIR, "ledger.jsonl");

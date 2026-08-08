@@ -11,7 +11,7 @@
  * msg.sender for the spray) is the SMART ACCOUNT, not the EOA. The EOA only signs.
  *
  * Gasless is OPT-IN: it activates only when a paymaster URL is configured AND
- * sponsorship is enabled. Otherwise SpraayBatch uses the Phase 2 EOA path.
+ * sponsorship is enabled. Otherwise SpraayBatch uses the EOA path (which needs ETH for gas).
  *
  * Sponsorship capping: the primary control is a CDP dashboard policy on the paymaster
  * key (per-user / per-period limits). `sponsorship.capUsd` is the local hook for future
